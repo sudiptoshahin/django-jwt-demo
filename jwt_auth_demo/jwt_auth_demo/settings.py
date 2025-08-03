@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "api",
     "user",
+    # for drf token based authentication
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -132,7 +134,10 @@ AUTH_USER_MODEL = "user.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
+    "DEFAULT_PERMISSION_CLASSES": (),
 }
 
 SIMPLE_JWT = {
