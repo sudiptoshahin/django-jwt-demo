@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "api",
     "user",
     # for drf token based authentication
-    'rest_framework.authtoken'
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -132,10 +132,11 @@ AUTH_USER_MODEL = "user.User"
 
 # restframework jwt
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "jwt_auth_demo.utils.custom_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (),
 }

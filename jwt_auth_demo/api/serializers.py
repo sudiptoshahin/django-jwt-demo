@@ -1,8 +1,7 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
-from user.models import StudentProfile, TeacherProfile, Student, Teacher
+from user.models import Student, Teacher
 User = get_user_model()
 
 
@@ -30,18 +29,19 @@ User = get_user_model()
 #         data["email"] = self.user.email
 #         return data
 
+
 class StudentRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
+        fields = ("username", "email", "password")
 
     def create(self, validated_data):
         user = Student.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
         )
         return user
 
@@ -51,12 +51,12 @@ class TeacherRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-    
+
     def create(self, validated_data):
         user = Teacher.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
         )
         return user
 
@@ -64,10 +64,10 @@ class TeacherRegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        data['user_id'] = self.user.id
-        data['username'] = self.user.username
-        data['email'] = self.user.email
-        data['role'] = self.user.role
+        data["user_id"] = self.user.id
+        data["username"] = self.user.username
+        data["email"] = self.user.email
+        data["role"] = self.user.role
         return data
 
 
@@ -82,12 +82,20 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'profile']
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "role",
+            "profile",
+        ]
 
     def get_profile(self, obj):
         if obj.role == User.Role.STUDENT:
-            profile = getattr(obj, 'studentprofile', None)
+            profile = getattr(obj, "studentprofile", None)
             return {"student_id": profile.student_id} if profile else None
         elif obj.role == User.Role.TEACHER:
-            profile = getattr(obj, 'teacherprofile', None)
+            profile = getattr(obj, "teacherprofile", None)
             return {"teacher_id": profile.teacher_id} if profile else None
