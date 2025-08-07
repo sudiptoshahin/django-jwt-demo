@@ -10,12 +10,17 @@ from user.models import User
 
 
 # --- define typed dict for snippet data----
+class UserData(TypedDict, total=False):
+    id: int
+    username: str
+
 class SnippetData(TypedDict, total=False):
     title: str
     code: str
     lineos: bool
     language: str
     style: str
+    owner: UserData
 
 
 class UserSerializer(serializers.ModelSerializer):
