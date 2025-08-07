@@ -116,6 +116,7 @@ class StudentRegisterView(generics.CreateAPIView):
             headers=headers,
         )
 
+
 # ---------------------------
 # Teacher Registration View
 # ---------------------------
@@ -220,6 +221,7 @@ class TeacherRegisterView(generics.CreateAPIView):
             headers=headers,
         )
 
+
 # ---------------------------
 # Login View
 # ---------------------------
@@ -268,8 +270,7 @@ class ProtectedView(APIView):
 
     def get(self, request):
         return Response(
-            {"message": f"Hello, {request.user.username}"},
-            status=status.HTTP_200_OK
+            {"message": f"Hello, {request.user.username}"}, status=status.HTTP_200_OK
         )
 
 

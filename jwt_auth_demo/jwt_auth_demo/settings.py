@@ -40,10 +40,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
-    "api",
-    "user",
     # for drf token based authentication
     "rest_framework.authtoken",
+    "api",
+    "user",
+    "snippets",
 ]
 
 MIDDLEWARE = [

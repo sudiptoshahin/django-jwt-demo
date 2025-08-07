@@ -1,12 +1,34 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth import get_user_model
-from user.models import StudentProfile, TeacherProfile
+# from django.contrib.auth import get_user_model
+from user.models import StudentProfile, TeacherProfile, Student, Teacher, User
 from django.utils.translation import gettext_lazy as _
+from typing import Optional, TypedDict, Dict
+from datetime import datetime
 
 # Get the custom user model defined in the project settings.
 # This is a best practice to ensure compatibility.
-User = get_user_model()
+# User = get_user_model()
+
+
+class UserData(TypedDict, total=False):
+    username: str
+    first_name: str
+    last_name: str
+    email: Optional[str]
+    is_staff: bool
+    is_active: bool
+    date_joined: datetime
+    role: str
+
+
+class TokenResponse(TypedDict):
+    refresh: str
+    access: str
+    user_id: int
+    username: str
+    email: str
+    role: str
 
 
 class StudentRegisterSerializer(serializers.ModelSerializer):
@@ -20,13 +42,13 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
 
     # The `password` field is `write_only` to prevent it from being
     # returned in API responses, ensuring password security.
-    password = serializers.CharField(write_only=True)
+    password: Optional[str] = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = ("username", "email", "password")
 
-    def create(self, validated_data):
+    def create(self, validated_data: UserData) -> Student:
         """
         Overrides the `create` method to handle user creation and role
         assignment.
@@ -42,7 +64,7 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
         """
         # Create a new user instance using the `create_user` method, which
         # handles password hashing.
-        user = User.objects.create_user(
+        user: Student = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
@@ -65,17 +87,17 @@ class TeacherRegisterSerializer(serializers.ModelSerializer):
     `TeacherProfile`.
     """
 
-    password = serializers.CharField(write_only=True)
+    password: Optional[str] = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = ("username", "email", "password")
 
-    def create(self, validated_data):
+    def create(self, validated_data: UserData) -> Teacher:
         """
         Overrides the `create` method to handle teacher user creation.
         """
-        user = User.objects.create_user(
+        user: Teacher = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
@@ -98,9 +120,11 @@ class LoginSerializer(TokenObtainPairSerializer):
     invalid credentials, preventing information leakage.
     """
 
-    default_error_messages = {"no_active_account": _("Invalid username or password.")}
+    default_error_messages: Dict[str, str] = {
+        "no_active_account": _("Invalid username or password.")
+    }
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, str]) -> TokenResponse:
         """
         Overrides the `validate` method to perform authentication and
         augment the response with user details.
@@ -126,12 +150,28 @@ class LoginSerializer(TokenObtainPairSerializer):
 
         # Upon successful validation, the `self.user` attribute is set.
         # We can now safely access it and add custom user data to the response.
-        data["user_id"] = self.user.id
-        data["username"] = self.user.username
-        data["email"] = self.user.email
-        data["role"] = self.user.role
+        # data["user_id"] = self.user.id
+        # data["username"] = self.user.username
+        # data["email"] = self.user.email
+        # data["role"] = self.user.role
 
-        return data
+        # typed_data: TokenResponse = {
+        #     "refresh": data.get('refresh'),
+        #     "access": data.get('access'),
+        #     "user_id": self.user.id,
+        #     "username": self.user.username,
+        #     "email": self.user.email,
+        #     "role": self.user.role
+        # }
+        typed_data: TokenResponse = {
+            **data,
+            "user_id": self.user.id,
+            "username": self.user.username,
+            "email": self.user.email,
+            "role": self.user.role,
+        }
+
+        return typed_data
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -160,7 +200,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "profile",
         ]
 
-    def get_profile(self, obj):
+    def get_profile(self, obj: User) -> Optional[Dict[str, Optional[int]]]:
         """
         A custom method to get the user's profile information based on their
         role.

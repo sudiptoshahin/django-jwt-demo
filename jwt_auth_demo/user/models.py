@@ -1,7 +1,10 @@
+from __future__ import annotations
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from typing import Optional, Type, Dict
+from django.db.models.query import QuerySet
 
 
 # ---------------------------
@@ -27,12 +30,14 @@ class User(AbstractUser):
         STUDENT = "STUDENT", "Student"
         TEACHER = "TEACHER", "Teacher"
 
-    role = models.CharField(max_length=20, choices=Role.choices, default=Role.ADMIN)
+    role: str = models.CharField(
+        max_length=20, choices=Role.choices, default=Role.ADMIN
+    )
     # The `base_role` attribute is used by the proxy models to
     # automatically set the role when a user is created through them.
-    base_role = Role.ADMIN
+    base_role: str = Role.ADMIN
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: object, **kwargs: object) -> None:
         """
         Overrides the save method to set the user's role before saving.
 
@@ -46,7 +51,7 @@ class User(AbstractUser):
             self.role = self.role or self._meta.model.base_role
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a human-readable string representation of the user.
         Includes both the username and their role for clarity.
@@ -54,7 +59,7 @@ class User(AbstractUser):
         return f"{self.username} ({self.role})"
 
     @property
-    def is_student(self):
+    def is_student(self) -> bool:
         """
         A property to check if the user is a student.
         Useful for permissions and conditional logic in templates or views.
@@ -62,7 +67,7 @@ class User(AbstractUser):
         return self.role == self.Role.STUDENT
 
     @property
-    def is_teacher(self):
+    def is_teacher(self) -> bool:
         """
         A property to check if the user is a teacher.
         Useful for permissions and conditional logic.
@@ -84,14 +89,22 @@ class StudentManager(BaseUserManager):
     that sets the role to 'STUDENT' by default.
     """
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, *args: object, **kwargs: object) -> QuerySet[User]:
         """
         Filters the default queryset to only show users with the 'STUDENT'
         role.
         """
-        return super().get_queryset(*args, **kwargs).filter(role=User.Role.STUDENT)
+        return super().get_queryset(*args, **kwargs).filter(
+            role=User.Role.STUDENT
+        )
 
-    def create_user(self, username, email, password=None, **extra_fields):
+    def create_user(
+        self,
+        username: str,
+        email: Optional[str],
+        password: Optional[str] = None,
+        **extra_fields: Dict[str, object],
+    ) -> User:
         """
         A custom method to create a new user with the 'STUDENT' role.
 
@@ -100,7 +113,7 @@ class StudentManager(BaseUserManager):
         """
         # Call the parent `create_user` method to handle the basic user
         # creation.
-        user = super().create_user(
+        user: User = super().create_user(
             username=username, email=email, password=password, **extra_fields
         )
         # Explicitly set the role to 'STUDENT'
@@ -117,18 +130,26 @@ class TeacherManager(BaseUserManager):
     and provides a `create_user` method for creating teacher accounts.
     """
 
-    def get_queryset(self, *args, **kwargs):
+    def get_queryset(self, *args: object, **kwargs: object) -> QuerySet[User]:
         """
         Filters the default queryset to only show users with the 'TEACHER'
         role.
         """
-        return super().get_queryset(*args, **kwargs).filter(role=User.Role.TEACHER)
+        return super().get_queryset(*args, **kwargs).filter(
+            role=User.Role.TEACHER
+        )
 
-    def create_user(self, username, email, password=None, **extra_fields):
+    def create_user(
+        self,
+        username: str,
+        email: Optional[str],
+        password: Optional[str] = None,
+        **extra_fields: Dict[str, object],
+    ) -> User:
         """
         A custom method to create a new user with the 'TEACHER' role.
         """
-        user = super().create_user(
+        user: User = super().create_user(
             username=username, email=email, password=password, **extra_fields
         )
         user.role = User.Role.TEACHER
@@ -149,13 +170,13 @@ class Student(User):
     through this model are automatically students.
     """
 
-    base_role = User.Role.STUDENT
-    objects = StudentManager()
+    base_role: str = User.Role.STUDENT
+    objects: StudentManager = StudentManager()
 
     class Meta:
         proxy = True  # This is the key to making it a proxy model.
 
-    def welcome(self):
+    def welcome(self) -> str:
         """
         A custom method specific to the 'Student' role.
         This demonstrates how proxy models can be used to add
@@ -172,13 +193,13 @@ class Teacher(User):
     users separately and add specific methods or managers.
     """
 
-    base_role = User.Role.TEACHER
-    objects = TeacherManager()
+    base_role: str = User.Role.TEACHER
+    objects: TeacherManager = TeacherManager()
 
     class Meta:
         proxy = True
 
-    def welcome(self):
+    def welcome(self) -> str:
         """
         A custom method specific to the 'Teacher' role.
         """
@@ -199,10 +220,10 @@ class StudentProfile(models.Model):
     best practice of separating user authentication from user details.
     """
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    student_id = models.IntegerField(null=True, blank=True)
+    user: User = models.OneToOneField(User, on_delete=models.CASCADE)
+    student_id: Optional[int] = models.IntegerField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the student profile.
         """
@@ -216,10 +237,10 @@ class TeacherProfile(models.Model):
     Similar to `StudentProfile`, this holds teacher-specific information.
     """
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    teacher_id = models.IntegerField(null=True, blank=True)
+    user: User = models.OneToOneField(User, on_delete=models.CASCADE)
+    teacher_id: Optional[int] = models.IntegerField(null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the teacher profile.
         """
@@ -232,7 +253,12 @@ class TeacherProfile(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_profile_for_user(sender, instance, created, **kwargs):
+def create_profile_for_user(
+    sender: Type[User],
+    instance: User,
+    created: bool,
+    **kwargs: Dict[str, object]
+) -> None:
     """
     A Django signal to automatically create a profile for a new user.
 
