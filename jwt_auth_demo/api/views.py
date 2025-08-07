@@ -270,7 +270,8 @@ class ProtectedView(APIView):
 
     def get(self, request):
         return Response(
-            {"message": f"Hello, {request.user.username}"}, status=status.HTTP_200_OK
+            {"message": f"Hello, {request.user.username}"},
+            status=status.HTTP_200_OK
         )
 
 

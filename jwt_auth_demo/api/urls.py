@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path, re_path, include
 
 # from .views import RegisterView, ProtectedView, LoginView, ProfileView
 from .views import StudentRegisterView, TeacherRegisterView, LoginView, ProfileView
@@ -38,5 +38,6 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("token/regresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("profile/", ProfileView.as_view(), name="profile"),
+    path('', include('snippets.urls')),
     re_path(r"^.*$", NotFoundFallbackAPIView.as_view()),
 ]

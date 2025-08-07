@@ -113,7 +113,7 @@ class StudentManager(BaseUserManager):
         """
         # Call the parent `create_user` method to handle the basic user
         # creation.
-        user: User = super().create_user(
+        user: User = User.objects.create_user(
             username=username, email=email, password=password, **extra_fields
         )
         # Explicitly set the role to 'STUDENT'
@@ -149,7 +149,7 @@ class TeacherManager(BaseUserManager):
         """
         A custom method to create a new user with the 'TEACHER' role.
         """
-        user: User = super().create_user(
+        user: User = User.objects.create_user(
             username=username, email=email, password=password, **extra_fields
         )
         user.role = User.Role.TEACHER
