@@ -70,13 +70,8 @@ Dependencies
 - `djangorestframework`
 - `djangorestframework-simplejwt`
 
-Install with:
-```bash
-pip install djangorestframework djangorestframework-simplejwt
-
-
-## 
-```ubuntu
+## Setup for ubuntu
+```
 python3 -m venv env
 source env/bin/activate
 
